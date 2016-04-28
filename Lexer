@@ -1,0 +1,131 @@
+import java_cup.runtime.Symbol;
+import java.lang.System;
+import java.io.*;
+
+%%
+%class Lexer
+
+%implements java_cup.runtime.Scanner
+%function next_token
+%type java_cup.runtime.Symbol
+
+%eofval{
+	return new Symbol(sym.EOF, null);
+%eofval}
+
+START=(\\documentclass\{(.)+\})
+PACKAGE=(\\usepackage\[(.)+\]\{(.)+\})
+COMMENT=(%(.)*)
+NEWLINE=([\\][\\])
+TITLE=(\\title)
+DATE=(\\date)
+SUBTITLE=(\\subtitle)
+SECTION=(\\section)
+TEXTBF=(\\textbf)
+TEXT=(\{(.)+\})
+BEGIN=(\\begin\{document\})
+END=(\\end\{document\})
+MAKE=(\\maketitle)
+BEGINITEMIZE=(\\begin\{itemize\})
+ONEITEM=(\\item)
+ENDITEMIZE=(\\end\{itemize\})
+MATH=(\$)
+NUMBER=([0-9])+
+VARIABLE=([a-z]([a-z_]|[0-9])*)
+OPERATOR=([+-*/=^])
+BEGINEQU=(\\begin\{equation\})
+ENDEQU=(\\end\{equation\})
+LABEL=(\\label\{(.)+\})
+ERRORLINE=(\\errorcoming)
+FUNCTION=(f([a-z]([a-z_]|[0-9])*))
+BODY=^[^0-9\{\n%\\$]+
+
+%%
+<YYINITIAL> {TITLE} { return (new Symbol(sym.TITLE, yytext()));}
+<YYINITIAL> {DATE} { return new Symbol(sym.DATE, yytext());}
+<YYINITIAL> {SUBTITLE} { return new Symbol(sym.SUB_TITLE, yytext());}
+<YYINITIAL> {SECTION} { return new Symbol(sym.SECTION, yytext());}
+<YYINITIAL> {TEXTBF} { return new Symbol(sym.BF, yytext());}
+<YYINITIAL> {TEXT} { return new Symbol(sym.TEXT, yytext());}
+<YYINITIAL> {BEGIN} { return new Symbol(sym.BEGIN, yytext());}
+<YYINITIAL> {END} { return new Symbol(sym.END, yytext());}
+<YYINITIAL> {MAKE} { return new Symbol(sym.MAKE, yytext());}
+<YYINITIAL> {START} { return new Symbol(sym.DOC_CLASS, yytext());}
+<YYINITIAL> {PACKAGE} { return new Symbol(sym.PACKAGE, yytext());}
+<YYINITIAL> {COMMENT} {}
+<YYINITIAL> {NEWLINE} {return new Symbol(sym.NEWLINE, yytext());}
+
+<YYINITIAL> {BEGINITEMIZE} {
+  itemText = "";
+  nItems = 0;
+  return (new Symbol(sym.BEGIN ,yytext()));
+}
+
+<YYINITIAL> {ONEITEM} {
+  insideItem = true;
+  nItems++;
+  return (new Symbol(sym.ITEM, yytext()));
+}
+
+<YYINITIAL> {ENDITEMIZE} { if (nItems > 0) {
+													return (new Symbol(sym.END, yytext()));
+                          } else {
+														return new Symbol(sym.ERROR, "Line: " + yyline + " Item list with missing \\item");
+														}
+												}
+
+<YYINITIAL> \n { if (insideItem) {
+                    Symbol s = new Symbol(sym.BODY, itemText);
+                    itemText = "";
+                    insideItem = false;
+                     return s;
+                  }
+              }
+
+<YYINITIAL> {MATH} { mathmode++; if(mathmode % 2 == 1) { return (new Symbol(sym.MATHMODE, yytext()));}}
+
+<YYINITIAL> {NUMBER} {
+  if (insideItem && mathmode % 2 == 0 && equmode % 2 == 0) {
+    itemText += yytext() + " ";
+  } else {
+    return (new Symbol(sym.NM,yytext()));
+  }
+}
+
+<YYINITIAL> {VARIABLE} {
+  if (insideItem && mathmode % 2 == 0 && equmode % 2 == 0) {
+    itemText += yytext() + " ";
+  } else if (mathmode%2 == 1 || equmode % 2 == 1) {
+    System.out.println("1st var");
+    return (new Symbol(sym.VAR,yytext()));
+  } else {
+    return new Symbol(sym.BODY, yytext());
+  }
+}
+
+<YYINITIAL> {OPERATOR} {return (new Symbol(sym.OPERATOR,yytext()));}
+
+<YYINITIAL> {BEGINEQU} {mathmode++; equmode++; {return (new Symbol(sym.BEGIN,yytext()));}}
+<YYINITIAL> {LABEL} { return (new Symbol(sym.LABEL,yytext()));}
+<YYINITIAL> {ENDEQU} { mathmode++; equmode++; return (new Symbol(sym.END,yytext()));}
+<YYINITIAL> {FUNCTION} {return (new Symbol(sym.FUNC,yytext()));}
+
+<YYINITIAL> {BODY} {
+  if (mathmode % 2 == 0 && equmode % 2 == 0) {
+    return new Symbol(sym.BODY,yytext());
+  } else if (mathmode%2 == 1) {
+  	if (equmode%2 == 1) {
+  		return (new Symbol(sym.FUNC,yytext()));
+  	}
+  	else {
+	  	System.out.println("2nd var");
+	    return new Symbol(sym.VAR, yytext());
+	   }
+  }
+}
+<YYINITIAL> {ERRORLINE} {
+  return new Symbol(sym.ERROR, "Line: " + yyline + " Undefined control sequence: " + yytext());
+}
+<YYINITIAL> . {
+  //return new Symbol(sym.ERROR, "Invalid input: " + yytext());
+}

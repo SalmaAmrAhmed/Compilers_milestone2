@@ -1,0 +1,8 @@
+import java_cup.runtime.*;
+
+/* Terminals (tokens returned by the scanner). */
+terminal    TITLE, DATE, SUB_TITLE, SECTION, BF, TEXT, BEGIN, END, MAKE, DOC_CLASS, PACKAGE, NEWLINE;
+terminal    ITEM, ERROR, BODY, MATHMODE, NM, VAR, OPERATOR, LABEL, FUNC;
+
+/* Non-terminals */
+nonterminal
