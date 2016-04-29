@@ -2,10 +2,10 @@ import java_cup.runtime.*;
 
 /* Terminals (tokens returned by the scanner). */
 terminal    TITLE, DATE, SUB_TITLE, SECTION, BF, TEXT, BEGIN, END, MAKE, DOC_CLASS, PACKAGE, NEWLINE;
-terminal    ITEM, ERROR, BODY, MATHMODE, NM, VAR, OPERATOR, LABEL, FUNC;
+terminal    ITEM, ERROR, BODY, MATHMODE, NM, VAR, OPERATOR, LABEL, FUNC, DOLLAR;
 
 /* Non-terminals */
-nonterminal String input, content, itemList, items;
+nonterminal String input, content, itemList, items, math, equation, label, items2;
 
 
 /* The grammar */
@@ -27,8 +27,9 @@ content ::= BODY:b content {:RESULT = b;:}
           | COMMENT content
           | ;
 
-math ::=
+math ::= DOLLAR content DOLLAR
 itemlist ::= BEGIN items END;
-equation ::=
+equation ::= BEGIN label FUNC:f {:RESULT = t; System.out.print(f);:} END;
+label ::= LABEL:l {:RESULT = l; System.out.print(l);:}
 items ::= ITEM items2 | ERROR;
 items2 ::=
