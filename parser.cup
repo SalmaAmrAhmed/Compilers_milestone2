@@ -32,4 +32,4 @@ itemlist ::= BEGIN items END;
 equation ::= BEGIN label FUNC:f {:RESULT = t; System.out.print(f);:} END;
 label ::= LABEL:l {:RESULT = l; System.out.print(l);:}
 items ::= ITEM items2 | ERROR;
-items2 ::=
+items2 ::= BODY:b items2:i2 {System.out.print(i2); RESULT = "" + b + ic;:}| MATHMODE | ERROR;
