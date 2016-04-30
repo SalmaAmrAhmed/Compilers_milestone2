@@ -39,9 +39,11 @@ LABEL=(\\label\{(.)+\})
 ERRORLINE=(\\errorcoming)
 FUNCTION=(f([a-z]([a-z_]|[0-9])*))
 BODY=^[^0-9\{\n%\\$]+
+DOLLAR=(\$)
 
 %%
 <YYINITIAL> {TITLE} { return (new Symbol(sym.TITLE, yytext()));}
+<YYINITIAL> {DOLLAR} { return (new Symbol(sym.DOLLAR, yytext()));}
 <YYINITIAL> {DATE} { return new Symbol(sym.DATE, yytext());}
 <YYINITIAL> {SUBTITLE} { return new Symbol(sym.SUB_TITLE, yytext());}
 <YYINITIAL> {SECTION} { return new Symbol(sym.SECTION, yytext());}

@@ -5,11 +5,11 @@ terminal    TITLE, DATE, SUB_TITLE, SECTION, BF, TEXT, BEGIN, END, MAKE, DOC_CLA
 terminal    ITEM, ERROR, BODY, MATHMODE, NM, VAR, OPERATOR, LABEL, FUNC, DOLLAR;
 
 /* Non-terminals */
-nonterminal String input, content, itemList, items, math, equation, label, items2;
+nonterminal String program, content, itemList, items, math, equation, label, items2;
 
 
 /* The grammar */
-input ::= DOC_CLASS PACKAGE BEGIN content END;
+program ::= DOC_CLASS PACKAGE BEGIN content END;
 
 content ::= BODY:b content {:RESULT = b;:}
           | TEXT:t content {:RESULT = t; System.out.print(t);:}
